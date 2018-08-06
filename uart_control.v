@@ -237,38 +237,38 @@ always@(posedge clock_bps or negedge reset_n)begin
              control_frame[39:32] <= rx_shift;
              num <= num + 1'b1;
            end
-	         else if(rx_shift == 8'haa)begin
-	           control_frame[47:40] <= rx_shift;
-	           num <= 3'b1;     
-	         end 
-	         else begin
-	           control_frame <= 48'b0;
-	           num <= 3'b0;
-	         end
+           else if(rx_shift == 8'haa)begin
+             control_frame[47:40] <= rx_shift;
+             num <= 3'b1;
+           end
+           else begin
+             control_frame <= 48'b0;
+             num <= 3'b0;
+           end
       3'b2:begin
-	         control_frame[31:24] <= rx_shift;
-	         num <= num + 1'b1;
-	         end
+           control_frame[31:24] <= rx_shift;
+           num <= num + 1'b1;
+           end
       3'b3:begin
-	         control_frame[23:16] <= rx_shift;
-	         num <= num + 1'b1;
-	         end
+           control_frame[23:16] <= rx_shift;
+           num <= num + 1'b1;
+           end
       3'b4:begin
-	         control_frame[15:8] <= rx_shift;
-	         num <= num + 1'b1;
-	         end
+           control_frame[15:8] <= rx_shift;
+           num <= num + 1'b1;
+           end
       3'b5:if(rx_shift == 8'h55)begin
-	           control_frame[7:0] <= rx_shift;
-	           num <= num + 1'b1;
-	         end
-	         else if(rx_shift == 8'haa)begin
-	           control_frame <= {rx_shift,40'b0};
-	           num <= 3'b1;
-	         end
-	         else begin
-	           control_frame <= 48'b0;
-	           num <= 3'b0;
-	         end
+             control_frame[7:0] <= rx_shift;
+             num <= num + 1'b1;
+           end
+           else if(rx_shift == 8'haa)begin
+             control_frame <= {rx_shift,40'b0};
+             num <= 3'b1;
+           end
+           else begin
+             control_frame <= 48'b0;
+             num <= 3'b0;
+           end
       default:control_frame <= 48'b0;
     endcase
   end
@@ -285,18 +285,18 @@ always@(posedge clock or negedge reset_n)begin
   else if(num == 3'd6)begin
     if(control_frame[47:32]==16'haa55 && control_frame[7:0]==8'h55)begin
       if(control_frame[31:24] + control_frame[23:16] == control_frame[15:8])begin
-	      control_ready       <= 1'b1;
-	      control_check_error <= 1'b0;
-	      checksum <= control_frame[15:8];
-	      control  <= control_frame[31:16];
-	      baudrate <= control[11:8];
-	      data_width  <= control[5:4];
-	      stop        <= control[3:2];
-	      parity_check<=control[1:0];
+        control_ready       <= 1'b1;
+        control_check_error <= 1'b0;
+        checksum <= control_frame[15:8];
+        control  <= control_frame[31:16];
+        baudrate <= control[11:8];
+        data_width  <= control[5:4];
+        stop        <= control[3:2];
+        parity_check<=control[1:0];
       end
       else begin
         control_ready       <= 1'b0;
-       	control_check_error <= 1'b1;
+        control_check_error <= 1'b1;
       end
     end
     else begin
@@ -308,5 +308,5 @@ always@(posedge clock or negedge reset_n)begin
     control_ready       <= 1'b0;
     control_check_error <= control_check_error;
   end
-endl
+end
 endmodule
