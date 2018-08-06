@@ -144,7 +144,143 @@ always@(posedge clock_bps or negedge reset_n)begin
     rx_shift <= 8'b0;
     rx_ready <= 1'b0;
   end
-  
+  else begin
+    case(state)
+      //idle state, check start signal
+      s_idle:begin
+        rx_ready <= 1'b0;
+        if(control_in == 1'b0)begin
+          if(cnt == 4'b0111)begin
+            cnt   <= 4'b0;
+            state <= s_sample;
+          end
+          else begin
+            cnt   <= cnt + 1'b1;
+            state <= s_idle;
+          end
+        end
+        else begin
+          cnt <= 1'b0;
+        end
+      end
+      //sample state,serial receive data
+      s_sample:begin
+        rx_ready <= 1'b0;
+        if(dcnt == 4'd8)begin
+          dcnt  <= 4'b0;
+          state <= s_check;
+        end
+        else begin
+          state <= s_sample;
+          if(cnt == 4'b1111)begin
+            dcnt <= dcnt + 1'b1;
+            cnt  <= 4'b0;
+            rx_shift[dcnt] <= control_in;
+          end
+          else begin
+            cnt <= cnt + 1'b1;
+          end
+        end
+      end
+      //check state,receive parity bit
+      s_check:begin
+        rx_ready <= 1'b0;
+        if(cnt == 4'b0110)begin
+          cnt   <= 4'b0;
+          state <= s_stop;
+        end
+        else begin
+          cnt <= cnt + 1'b1;
+        end
+      end
+      //stop state,check stop signal
+      s_stop:begin
+        rx_ready <= 1'b1;
+        if(cnt == 4'b1111)begin
+          cnt   <= 4'b0;
+          state <= s_idle;
+        end
+        else begin
+          cnt <= cnt + 1'b1;
+        end
+      end
+      default:state <= s_idle;
+    endcase
+  end
 end
 
+//receive control frame
+always@(posedge clock_bps or negedge reset_n)begin
+  if(!reset_n)begin
+    ready_num <= 4'b0;
+    num       <= 3'b0;
+    control_frame <= 48'b0;
+  end
+  else if(num == 3'd6)begin
+    num <= 3'b0;
+  end
+  else if(rx_ready == 1'b0)begin
+    num <= num;
+  end
+  else if(ready_num == 4'b1111)begin
+    ready_num <= 4'b0;
+    case(num)
+      3'b0:if(rx_shift == 8'haa)begin
+             control_frame[47:40] <= rx_shift;
+             num <= num + 1'b1;
+           end
+           else begin
+             control_frame <= 48'b0;
+             num <= 3'b0;
+           end
+      3'b1:if(rx_shift == 8'h55)begin
+             control_frame[39:32] <= rx_shift;
+             num <= num + 1'b1;
+           end
+	         else if(rx_shift == 8'haa)begin
+	           control_frame[47:40] <= rx_shift;
+	           num <= 3'b1;     
+	         end beign
+				     control_frame <= 48'b0;
+				     num <= 3'b0;
+				   end
+	  	3'b2:begin
+					   control_frame[31:24] <= rx_shift;
+				     num <= num + 1'b1;
+				   end
+		  3'b3:begin
+					   control_frame[23:16] <= rx_shift;
+					   num <= num + 1'b1;
+				   end
+			3'b4:begin
+					   control_frame[15:8] <= rx_shift;
+					   num <= num + 1'b1;
+				   end
+			3'b5:if(rx_shift == 8'h55)begin
+					   control_frame[7:0] <= rx_shift;
+					   num <= num + 1'b1;
+				   end
+				   else if(rx_shift == 8'haa)begin
+					   control_frame <= {rx_shift,40'b0};
+					   num <= 3'b1;
+				   end
+				   else begin
+				     control_frame <= 48'b0;
+					   num <= 3'b0;
+				   end
+			default:control_frame <= 48'b0;
+    endcase
+  end
+	else begin
+	  ready_num <= ready_num + 1'b1;
+	end
+end
+//judge whether control data is correct
+	always@(posedge clock or negedge reset_n)begin
+	if(!reset_n)begin
+	  control_ready <= 1'b0;
+		control_check_error <= 1'b0;
+	end
+	else
+end
 endmodule
