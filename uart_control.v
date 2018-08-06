@@ -282,31 +282,31 @@ always@(posedge clock or negedge reset_n)begin
     control_ready       <= 1'b0;
     control_check_error <= 1'b0;
   end
-	else if(num == 3'd6)begin
-		if(control_frame[47:32]==16'haa55 && control_frame[7:0]==8'h55)begin
-			if(control_frame[31:24] + control_frame[23:16] == control_frame[15:8])begin
-			  control_ready       <= 1'b1;
-				control_check_error <= 1'b0;
-				checksum <= control_frame[15:8];
-				control  <= control_frame[31:16];
-				baudrate <= control[11:8];
-				data_width  <= control[5:4];
-				stop        <= control[3:2];
-				parity_check<=control[1:0];
-			end
-			else begin
-			  control_ready       <= 1'b0;
-				control_check_error <= 1'b1;
-			end
-		end
-		else begin
-		  control_ready       <= 1'b0;
-			control_check_error <= control_check_error;
-		end
-	end
-	else begin
-	  control_ready       <= 1'b0;
-		control_check_error <= control_check_error;
-	end
+  else if(num == 3'd6)begin
+    if(control_frame[47:32]==16'haa55 && control_frame[7:0]==8'h55)begin
+      if(control_frame[31:24] + control_frame[23:16] == control_frame[15:8])begin
+	control_ready       <= 1'b1;
+	control_check_error <= 1'b0;
+	checksum <= control_frame[15:8];
+	control  <= control_frame[31:16];
+	baudrate <= control[11:8];
+	data_width  <= control[5:4];
+	stop        <= control[3:2];
+	parity_check<=control[1:0];
+      end
+      else begin
+        control_ready       <= 1'b0;
+	control_check_error <= 1'b1;
+      end
+    end
+    else begin
+      control_ready       <= 1'b0;
+      control_check_error <= control_check_error;
+    end
+  end
+  else begin
+    control_ready       <= 1'b0;
+    control_check_error <= control_check_error;
+  end
 end
 endmodule
