@@ -308,5 +308,5 @@ always@(posedge clock or negedge reset_n)begin
     control_ready       <= 1'b0;
     control_check_error <= control_check_error;
   end
-end
+endl
 endmodule
